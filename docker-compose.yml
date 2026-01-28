@@ -20,6 +20,36 @@ services:
     environment:
       KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
       KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+
+  spark-master:
+    image: public.ecr.aws/bitnami/spark:latest
+    user: root
+    container_name: spark-master
+    environment:
+      - SPARK_MODE=master
+      - SPARK_RPC_AUTHENTICATION_ENABLED=no
+      - SPARK_SUBMIT_OPTS=-Divy.cache.dir=/tmp -Divy.home=/tmp
+    ports:
+      - "8080:8080"
+      - "7077:7077"
+    volumes:
+      - ./apps:/opt/bitnami/spark/apps
+
+  spark-worker:
+    image: public.ecr.aws/bitnami/spark:latest
+    user: root
+    container_name: spark-worker
+    environment:
+      - SPARK_MODE=worker
+      - SPARK_MASTER_URL=spark://spark-master:7077
+      - SPARK_WORKER_CORES=2
+      - SPARK_WORKER_MEMORY=2g
+      - SPARK_RPC_AUTHENTICATION_ENABLED=no
+      - SPARK_SUBMIT_OPTS=-Divy.cache.dir=/tmp -Divy.home=/tmp
+    depends_on:
+      - spark-master
+    volumes:
+      - ./apps:/opt/bitnami/spark/apps
