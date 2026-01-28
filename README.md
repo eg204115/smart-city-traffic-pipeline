@@ -18,3 +18,4 @@ python producer/traffic_producer.py
 docker exec -it kafka kafka-console-consumer --bootstrap-server localhost:9092 --topic traffic-data --from-beginning
 
 
+docker exec -it spark-master spark-submit --master spark://spark-master:7077 /opt/bitnami/spark/apps/traffic_stream.py
